@@ -22,6 +22,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import run.halo.app.plugin.ReactiveSettingFetcher;
+import run.halo.app.theme.TemplateNameResolver;
 import run.halo.app.theme.router.PageUrlUtils;
 import run.halo.app.theme.router.UrlContextListResult;
 import run.halo.moments.finders.MomentFinder;
@@ -43,8 +44,8 @@ import run.halo.moments.vo.MomentVo;
 public class MomentRouter {
     private static final String TAG_PARAM = "tag";
     private final MomentFinder momentFinder;
-
     private final ReactiveSettingFetcher settingFetcher;
+    private final TemplateNameResolver templateNameResolver;
 
     @Bean
     RouterFunction<ServerResponse> momentRouterFunction() {
@@ -76,26 +77,69 @@ public class MomentRouter {
 
     /**
      * Handler for the exclusive moments page (/moments-page).
-     * Reads the exclusive page settings and renders the moments-page template.
+     * Supports URL parameter ?tag=xxx to override the configured tag.
+     * Priority: URL param > configured exclusivePageTag.
      */
     private HandlerFunction<ServerResponse> handlerExclusivePage() {
         return request -> {
+            // URL parameter ?tag=xxx takes priority
+            Optional<String> urlTag = request.queryParam("tag")
+                .filter(StringUtils::isNotBlank);
+
             return settingFetcher.get("exclusivePage")
                 .flatMap(setting -> {
-                    String tag = setting.get("exclusivePageTag").asText("");
-                    String pageTitle = setting.get("exclusivePageTitle").asText("瞬间");
+                    String configuredTag = setting.get("exclusivePageTag").asText("");
                     int pageSize = setting.get("exclusivePageSize").asInt(20);
+                    String defaultSort = setting.get("exclusivePageSort").asText("desc");
+
+                    // Use URL tag if present, otherwise fall back to configured tag
+                    String tag = urlTag.orElse(configuredTag);
 
                     if (StringUtils.isBlank(tag)) {
-                        // No tag configured, show config missing page
                         Map<String, Object> model = new HashMap<>();
                         model.put("configMissing", true);
-                        model.put("pageTitle", pageTitle);
+                        model.put("pageTitle", "瞬间");
                         model.put(ModelConst.TEMPLATE_ID, "moments-page");
-                        return ServerResponse.ok().render("moments-page", model);
+                        return templateNameResolver
+                            .resolveTemplateNameOrDefault(
+                                request.exchange(), "moments-page")
+                            .flatMap(tmpl ->
+                                ServerResponse.ok().render(tmpl, model));
                     }
 
-                    // Read sort and page from query params
+                    String sortDir = request.queryParam("sort").orElse(defaultSort);
+                    int page = NumberUtils.toInt(
+                        request.queryParam("page").orElse("1"), 1);
+
+                    Map<String, Object> model = new HashMap<>();
+                    model.put("configMissing", false);
+                    model.put("tag", tag);
+                    model.put("pageTitle", tag);
+                    model.put("sortDir", sortDir);
+                    model.put("page", page);
+                    model.put("size", pageSize);
+                    model.put(ModelConst.TEMPLATE_ID, "moments-page");
+                    return templateNameResolver
+                        .resolveTemplateNameOrDefault(
+                            request.exchange(), "moments-page")
+                        .flatMap(tmpl ->
+                            ServerResponse.ok().render(tmpl, model));
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    // No settings at all — still check URL tag
+                    String tag = urlTag.orElse("");
+                    if (StringUtils.isBlank(tag)) {
+                        Map<String, Object> model = new HashMap<>();
+                        model.put("configMissing", true);
+                        model.put("pageTitle", "瞬间");
+                        model.put(ModelConst.TEMPLATE_ID, "moments-page");
+                        return templateNameResolver
+                            .resolveTemplateNameOrDefault(
+                                request.exchange(), "moments-page")
+                            .flatMap(tmpl ->
+                                ServerResponse.ok().render(tmpl, model));
+                    }
+
                     String sortDir = request.queryParam("sort").orElse("desc");
                     int page = NumberUtils.toInt(
                         request.queryParam("page").orElse("1"), 1);
@@ -103,20 +147,16 @@ public class MomentRouter {
                     Map<String, Object> model = new HashMap<>();
                     model.put("configMissing", false);
                     model.put("tag", tag);
-                    model.put("pageTitle", pageTitle);
+                    model.put("pageTitle", tag);
                     model.put("sortDir", sortDir);
                     model.put("page", page);
-                    model.put("size", pageSize);
+                    model.put("size", 20);
                     model.put(ModelConst.TEMPLATE_ID, "moments-page");
-                    return ServerResponse.ok().render("moments-page", model);
-                })
-                .switchIfEmpty(Mono.defer(() -> {
-                    // No exclusive page settings at all
-                    Map<String, Object> model = new HashMap<>();
-                    model.put("configMissing", true);
-                    model.put("pageTitle", "瞬间");
-                    model.put(ModelConst.TEMPLATE_ID, "moments-page");
-                    return ServerResponse.ok().render("moments-page", model);
+                    return templateNameResolver
+                        .resolveTemplateNameOrDefault(
+                            request.exchange(), "moments-page")
+                        .flatMap(tmpl ->
+                            ServerResponse.ok().render(tmpl, model));
                 }));
         };
     }
