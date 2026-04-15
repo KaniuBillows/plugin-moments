@@ -6,9 +6,12 @@ import static run.halo.app.extension.index.query.Queries.empty;
 import static run.halo.app.extension.index.query.Queries.equal;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
@@ -136,6 +139,49 @@ public class MomentFinderImpl implements MomentFinder {
     }
 
     @Override
+    public Flux<MomentTagVo> listAllTagsExcluding(List<String> hiddenTags) {
+        Set<String> hiddenSet = hiddenTags == null ? Collections.emptySet()
+            : hiddenTags.stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+        if (hiddenSet.isEmpty()) {
+            return listAllTags();
+        }
+        return momentPredicateResolver.getListOptions()
+            .map(options -> {
+                options.setFieldSelector(
+                    options.getFieldSelector().andQuery(
+                        all("spec.tags")
+                    )
+                );
+                return options;
+            })
+            .flatMapMany(listOptions -> client.listAll(Moment.class, listOptions, defaultSort())
+                .flatMapIterable(moment -> {
+                    var tags = moment.getSpec().getTags();
+                    if (tags == null) {
+                        return List.of();
+                    }
+                    return tags.stream()
+                        .filter(tag -> !hiddenSet.contains(tag))
+                        .map(tag -> new MomentTagPair(tag, moment.getMetadata().getName()))
+                        .toList();
+                })
+                .groupBy(MomentTagPair::tagName)
+                .concatMap(groupedFlux -> groupedFlux.count()
+                    .defaultIfEmpty(0L)
+                    .map(count -> MomentTagVo.builder()
+                        .name(groupedFlux.key())
+                        .momentCount(count.intValue())
+                        .permalink("/moments?tag=" + UriUtils.encode(groupedFlux.key(),
+                            StandardCharsets.UTF_8))
+                        .build()
+                    )
+                ));
+    }
+
+    @Override
     public Mono<ListResult<MomentVo>> listByTag(int pageNum, Integer pageSize, String tagName) {
         var listOptions = new ListOptions();
         var query = empty();
@@ -146,6 +192,59 @@ public class MomentFinderImpl implements MomentFinder {
         var pageRequest =
             PageRequestImpl.of(pageNullSafe(pageNum), sizeNullSafe(pageSize), defaultSort());
         return momentPublicQueryService.list(listOptions, pageRequest);
+    }
+
+    @Override
+    public Mono<ListResult<MomentVo>> listByTagExcluding(int pageNum, Integer pageSize,
+                                                          String tagName,
+                                                          List<String> hiddenTags) {
+        Set<String> hiddenSet = hiddenTags == null ? Collections.emptySet()
+            : hiddenTags.stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+        if (hiddenSet.isEmpty()) {
+            return listByTag(pageNum, pageSize, tagName);
+        }
+
+        // If a specific tag is requested, check if it's hidden
+        if (StringUtils.isNotBlank(tagName) && hiddenSet.contains(tagName)) {
+            // Requested tag is hidden, return empty result
+            return Mono.just(new ListResult<>(pageNullSafe(pageNum), sizeNullSafe(pageSize),
+                0, List.of()));
+        }
+
+        var listOptions = new ListOptions();
+        var query = all();
+        if (StringUtils.isNotBlank(tagName)) {
+            query = and(query, equal("spec.tags", tagName));
+        }
+        listOptions.setFieldSelector(FieldSelector.of(query));
+        var pageRequest =
+            PageRequestImpl.of(pageNullSafe(pageNum), sizeNullSafe(pageSize), defaultSort());
+
+        // Use the public query service, then filter out moments with hidden tags
+        return momentPublicQueryService.list(listOptions, pageRequest)
+            .flatMap(listResult -> {
+                if (StringUtils.isNotBlank(tagName)) {
+                    // A specific non-hidden tag was requested, no further filtering needed
+                    return Mono.just(listResult);
+                }
+                // No specific tag — filter out moments that only have hidden tags
+                var filteredItems = listResult.getItems().stream()
+                    .filter(momentVo -> {
+                        var tags = momentVo.getSpec().getTags();
+                        if (tags == null || tags.isEmpty()) {
+                            return true; // Moments without tags are always shown
+                        }
+                        // Show moment if it has at least one non-hidden tag,
+                        // or hide it if ALL its tags are hidden
+                        return tags.stream().anyMatch(t -> !hiddenSet.contains(t));
+                    })
+                    .toList();
+                return Mono.just(new ListResult<>(listResult.getPage(), listResult.getSize(),
+                    listResult.getTotal(), filteredItems));
+            });
     }
 
     static int pageNullSafe(Integer page) {

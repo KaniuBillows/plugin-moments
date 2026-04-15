@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      data-theme="dark" data-overlayscrollbars-initialize>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${pageTitle != null} ? ${pageTitle} + ' - 北川广海の梦' : '瞬间 - 北川广海の梦'">瞬间</title>
+
+    <!-- Walker 主题配色初始化 -->
+    <script>
+      var walker = {
+        colorSchemeSettings: {"default":"system","default_light":"emerald","default_dark":"dim","enable_change":true,"switcher_type":"switch","enable_view_transition_api":true},
+        activeColorScheme: "system",
+      };
+    </script>
+
+    <style>
+      .main { max-width: 1200px; margin: 0 auto; }
+    </style>
+
+    <noscript>
+      <style>body { display: block !important; }</style>
+    </noscript>
+
+    <!-- Walker 主题核心 JS（负责 Alpine.js app、暗色模式、sidebar 交互等） -->
+    <script type="module" crossorigin th:src="@{/themes/theme-walker/assets/index-BAtXl84x.js}"></script>
+    <link rel="modulepreload" crossorigin th:href="@{/themes/theme-walker/assets/vendor~archives~author~categories~category~index~links~moment~moments~page-links~page~photo~cqdj3oqp-R5jBzZ3P.js}" />
+    <link rel="modulepreload" crossorigin th:href="@{/themes/theme-walker/assets/main-z9Ux024Z.js}" />
+    <link rel="modulepreload" crossorigin th:href="@{/themes/theme-walker/assets/UpvoteButton-BwUFI9E9.js}" />
+
+    <!-- Walker 主题 CSS -->
+    <link rel="stylesheet" crossorigin th:href="@{/themes/theme-walker/assets/vendor~archives~author~categories~category~index~links~moment~moments~page-links~page~photo~cqdj3oqp-Cqyayk8v.css}" />
+    <link rel="stylesheet" crossorigin th:href="@{/themes/theme-walker/assets/main-DME07mls.css}" />
+    <link rel="stylesheet" crossorigin th:href="@{/themes/theme-walker/assets/moments-CkJXdDDn.css}" />
+    <link rel="stylesheet" crossorigin th:href="@{/themes/theme-walker/assets/prose-ihHRjRUr.css}" />
+
+    <!-- 插件 CSS -->
+    <link rel="stylesheet" th:href="@{/plugins/PluginSearchWidget/assets/static/style.css?version=1.7.1}" />
+    <link rel="stylesheet" th:href="@{/plugins/PluginCommentWidget/assets/static/index.css?version=3.1.1}" />
+
+    <!-- 插件 JS -->
+    <script th:src="@{/plugins/PluginSearchWidget/assets/static/search-widget.iife.js?version=1.7.1}" defer></script>
+
+    <link rel="icon" href="https://kaniu-img.oss-cn-chengdu.aliyuncs.com/blogPic/cc.ico" />
+
+    <style>
+        /* 排序控制 */
+        .mp-controls {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            font-size: 0.85em;
+        }
+        .mp-controls span {
+            color: var(--fallback-bc, oklch(var(--bc) / 0.5));
+        }
+        .mp-controls a {
+            color: var(--fallback-bc, oklch(var(--bc) / 0.5));
+            text-decoration: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .mp-controls a:hover {
+            background: var(--fallback-b2, oklch(var(--b2)));
+        }
+        .mp-controls a.active {
+            color: var(--fallback-bc, oklch(var(--bc) / 0.9));
+            font-weight: 600;
+            background: var(--fallback-b2, oklch(var(--b2)));
+        }
+
+        /* 分页 */
+        .mp-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 40px;
+            padding-bottom: 40px;
+        }
+        .mp-pagination a {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9em;
+            background: var(--fallback-b1, oklch(var(--b1)));
+            color: var(--fallback-bc, oklch(var(--bc) / 0.9));
+            border: 1px solid var(--fallback-bc, oklch(var(--bc) / 0.1));
+            transition: all 0.2s;
+        }
+        .mp-pagination a:hover {
+            background: var(--fallback-b2, oklch(var(--b2)));
+        }
+        .mp-pagination .current {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            background: var(--fallback-bc, oklch(var(--bc)));
+            color: var(--fallback-b1, oklch(var(--b1)));
+        }
+        .mp-pagination .disabled {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: var(--fallback-bc, oklch(var(--bc) / 0.2));
+        }
+
+        /* 空状态 & 配置提示 */
+        .mp-empty, .mp-config-tip {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--fallback-bc, oklch(var(--bc) / 0.4));
+        }
+        .mp-empty p, .mp-config-tip p {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+
+<!-- body 使用 Alpine.js x-data="app"，与主题一致 -->
+<body x-data="app" class="hidden" data-overlayscrollbars-initialize>
+
+    <!-- ====== 移动端顶部导航栏 ====== -->
+    <div class="fixed left-0 right-0 top-0 z-50 flex items-center bg-base-100 p-4 shadow-sm lg:hidden">
+        <i class="animated fadeIn i-ri-menu-2-line inline-block cursor-pointer text-2xl" @click="openMenu()"> </i>
+        <a href="/">
+            <img class="animated fadeIn avatar mx-4 mt-0 size-9 rounded-lg"
+                 src="https://kaniu-img.oss-cn-chengdu.aliyuncs.com/blogPic/%E5%A4%B4%E5%83%8F.jpg"
+                 alt="北川广海の梦" width="36" height="36" />
+        </a>
+        <h1 class="animated fadeIn mt-0 text-xl font-extrabold" style="animation-delay: 0.1s">北川广海の梦</h1>
+        <div class="flex flex-1 items-center justify-end gap-4">
+            <a class="animated fadeIn i-ri-search-line inline-block cursor-pointer text-xl text-base-content/60 hover:text-base-content"
+               href="javascript:SearchWidget.open()"></a>
+            <color-scheme-switcher class="inline-flex [&>*>i]:text-xl" type="switch"></color-scheme-switcher>
+        </div>
+    </div>
+
+    <!-- ====== 主布局 ====== -->
+    <div class="main flex flex-col px-4 lg:flex-row">
+
+        <!-- ====== 左侧边栏 ====== -->
+        <div id="sidebar" class="sidebar-wrapper lg:static lg:w-1/4">
+            <div class="top-0 lg:sticky">
+                <div class="sidebar-content">
+                    <div class="static left-0 right-0 top-0 z-50 hidden items-center p-4 px-0 lg:block">
+                        <div class="flex items-center justify-between">
+                            <div class="inline-flex items-center gap-4 justify-between !flex w-full">
+                                <color-scheme-switcher class="mt-4 inline-flex [&>*>i]:text-2xl" type="switch"></color-scheme-switcher>
+                                <a class="animated fadeIn i-ri-search-line mt-4 inline-block cursor-pointer text-2xl text-base-content/60 hover:text-base-content"
+                                   href="javascript:SearchWidget.open()"></a>
+                            </div>
+                        </div>
+                        <div class="group relative mt-32 inline-block">
+                            <a href="/">
+                                <img class="animated fadeIn avatar mx-0 size-24 rounded-lg"
+                                     src="https://kaniu-img.oss-cn-chengdu.aliyuncs.com/blogPic/%E5%A4%B4%E5%83%8F.jpg"
+                                     alt="北川广海の梦" width="96" height="96" />
+                            </a>
+                        </div>
+                        <h1 class="animated fadeIn mt-8 text-4xl font-extrabold" style="animation-delay: 0.1s">北川广海の梦</h1>
+                    </div>
+                    <div class="animated fadeIn" style="animation-delay: 0.2s">
+                        <p class="my-4 hidden font-light text-base-content/80 lg:block">life&#39;s not out to get you</p>
+                        <div class="animated fadeIn social-container hidden gap-4 lg:flex" style="animation-delay: 0.3s">
+                            <a href="mailto:kaniucc@qq.com" target="_blank" title="qqmail"
+                               class="text-xl font-light text-base-content/40 hover:text-base-content [&>svg]:size-5">
+                                <i class="inline-block i-ri-mail-line"></i>
+                            </a>
+                            <a href="https://github.com/KaniuBillows" target="_blank" title="Kaniu"
+                               class="text-xl font-light text-base-content/40 hover:text-base-content [&>svg]:size-5">
+                                <i class="inline-block i-ri-github-fill"></i>
+                            </a>
+                            <a href="/rss.xml" target="_blank" title="Rss"
+                               class="text-xl font-light text-base-content/40 hover:text-base-content [&>svg]:size-5">
+                                <i class="inline-block i-ri-rss-fill"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="animated fadeIn mt-6 hidden lg:block" style="animation-delay: 0.4s">
+                        <ul x-data="menu" id="menu-container" class="w-full space-y-6">
+                            <li>
+                                <a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/" target="_self">
+                                    <img class="inline-block size-6 flex-none" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M4%2021V9l8-6l8%206v12h-6v-7h-4v7z%22%2F%3E%3C%2Fsvg%3E" />
+                                    <span>Home</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/archives" target="_self">
+                                    <img class="inline-block size-6 flex-none" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22m12%2018l4-4l-1.4-1.4l-1.6%201.6V10h-2v4.2l-1.6-1.6L8%2014zm-7%203q-.825%200-1.412-.587T3%2019V6.525q0-.35.113-.675t.337-.6L4.7%203.725q.275-.35.687-.538T6.25%203h11.5q.45%200%20.863.188t.687.537l1.25%201.525q.225.275.338.6t.112.675V19q0%20.825-.587%201.413T19%2021zm.4-15h13.2l-.85-1H6.25z%22%2F%3E%3C%2Fsvg%3E" />
+                                    <span>Archives</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/moments" target="_self">
+                                    <img class="inline-block size-6 flex-none" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cpath%20d%3D%22m12.593%2023.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02%200%200%200-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z%22%2F%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22m9%2016.042l8.002%204.62A9.95%209.95%200%200%201%2012%2022c-.915%200-1.8-.123-2.642-.353L9%2021.542zm-2-4.62v9.24a10.02%2010.02%200%200%201-4.687-6.171l-.076-.318zM22%2012a9.97%209.97%200%200%201-3.012%207.153l-.227.215L14%2016.618zM12%208.536l3%201.732v3.464l-3%201.732l-3-1.732v-3.464zm5-5.198a10.02%2010.02%200%200%201%204.763%206.49L17%2012.577v-9.24ZM5.239%204.632L10%207.382L2%2012l.006-.335a9.97%209.97%200%200%201%203.006-6.818zM12%202c.915%200%201.8.123%202.642.353l.358.105v5.5l-8.002-4.62A9.95%209.95%200%200%201%2012%202%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E" />
+                                    <span>Moments</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/moments-page" target="_self">
+                                    <img class="inline-block size-6 flex-none" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M9%2021V8.775q-2.075-.55-3.387-2.2T4.05%202.825q-.05-.35.25-.587T5%202t.7.213t.35.587q.275%201.8%201.55%203T10.75%207h2.5q.75%200%201.4.275t1.175.8L19.65%2011.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275L15%2010.05V21q0%20.425-.288.713T14%2022t-.712-.288T13%2021v-5h-2v5q0%20.425-.288.713T10%2022t-.712-.288T9%2021m1.588-15.587Q10%204.825%2010%204t.588-1.412T12%202t1.413.588T14%204t-.587%201.413T12%206t-1.412-.587%22%2F%3E%3C%2Fsvg%3E" />
+                                    <span>Remember</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/steam" target="_self">
+                                    <img class="inline-block size-6 flex-none" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22M12%202a10%2010%200%200%201%2010%2010a10%2010%200%200%201-10%2010c-4.6%200-8.45-3.08-9.64-7.27l3.83%201.58a2.84%202.84%200%200%200%202.78%202.27c1.56%200%202.83-1.27%202.83-2.83v-.13l3.4-2.43h.08c2.08%200%203.77-1.69%203.77-3.77s-1.69-3.77-3.77-3.77s-3.78%201.69-3.78%203.77v.05l-2.37%203.46l-.16-.01c-.59%200-1.14.18-1.59.49L2%2011.2C2.43%206.05%206.73%202%2012%202M8.28%2017.17c.8.33%201.72-.04%202.05-.84s-.05-1.71-.83-2.04l-1.28-.53c.49-.18%201.04-.19%201.56.03c.53.21.94.62%201.15%201.15c.22.52.22%201.1%200%201.62c-.43%201.08-1.7%201.6-2.78%201.15c-.5-.21-.88-.59-1.09-1.04zm9.52-7.75c0%201.39-1.13%202.52-2.52%202.52a2.52%202.52%200%200%201-2.51-2.52a2.5%202.5%200%200%201%202.51-2.51a2.52%202.52%200%200%201%202.52%202.51m-4.4%200c0%201.04.84%201.89%201.89%201.89c1.04%200%201.88-.85%201.88-1.89s-.84-1.89-1.88-1.89c-1.05%200-1.89.85-1.89%201.89%22%2F%3E%3C%2Fsvg%3E" />
+                                    <span>Steam</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/douban" target="_self">
+                                    <img class="inline-block size-6 flex-none" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22m4%204l2%204h3L7%204h2l2%204h3l-2-4h2l2%204h3l-2-4h3q.825%200%201.413.588T22%206v12q0%20.825-.587%201.413T20%2020H4q-.825%200-1.412-.587T2%2018V6q0-.825.588-1.412T4%204%22%2F%3E%3C%2Fsvg%3E" />
+                                    <span>Movie</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/links" target="_self">
+                                    <img class="inline-block size-6 flex-none" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22m13.06%208.111l1.415%201.414a7%207%200%200%201%200%209.9l-.354.353a7%207%200%201%201-9.9-9.9l1.415%201.415a5%205%200%201%200%207.071%207.071l.354-.354a5%205%200%200%200%200-7.07l-1.415-1.415zm6.718%206.01l-1.414-1.414a5%205%200%200%200-7.071-7.07l-.354.353a5%205%200%200%200%200%207.07l1.415%201.415l-1.415%201.414l-1.414-1.414a7%207%200%200%201%200-9.9l.354-.353a7%207%200%201%201%209.9%209.9%22%2F%3E%3C%2Fsvg%3E" />
+                                    <span>Links</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/me" target="_self">
+                                    <img class="inline-block size-6 flex-none" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22currentColor%22%20fill-rule%3D%22evenodd%22%20d%3D%22M2.5%2020v-.685c0-.685.498-1.483%201.114-1.784l5.66-2.762c.821-.4%201.012-1.288.42-1.99l-.362-.429C8.596%2011.478%208%209.85%208%208.71V7a4%204%200%200%201%208%200v1.71c0%201.14-.6%202.773-1.332%203.642l-.361.428c-.59.699-.406%201.588.419%201.99l5.66%202.762c.615.3%201.114%201.093%201.114%201.783V20a1%201%200%200%201-1%201h-17a1%201%200%200%201-1-1%22%2F%3E%3C%2Fsvg%3E" />
+                                    <span>Me</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== 移动端侧滑菜单 ====== -->
+        <div class="menu-container" :class="{ 'open' : menuVisible }">
+            <i class="animated fadeIn close-menu-btn i-ri-arrow-left-line inline-block cursor-pointer text-2xl" @click="closeMenu()"></i>
+            <div class="w-full" :class="{ 'animated fadeIn' : menuVisible}">
+                <ul x-data="menu" id="menu-container" class="w-full space-y-6">
+                    <li><a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/" target="_self"><span>Home</span></a></li>
+                    <li><a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/archives" target="_self"><span>Archives</span></a></li>
+                    <li><a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/moments" target="_self"><span>Moments</span></a></li>
+                    <li><a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/moments-page" target="_self"><span>Remember</span></a></li>
+                    <li><a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/steam" target="_self"><span>Steam</span></a></li>
+                    <li><a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/douban" target="_self"><span>Movie</span></a></li>
+                    <li><a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/links" target="_self"><span>Links</span></a></li>
+                    <li><a class="flex items-center space-x-2.5 text-base-content/70 hover:text-base-content" href="/me" target="_self"><span>Me</span></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="mask" :class="{ 'open' : menuVisible}" @click="closeMenu()"></div>
+
+        <!-- ====== 右侧内容区 ====== -->
+        <div class="content-wrapper pt-32 lg:w-3/4 lg:p-8" :class="{ 'is-second' : menuVisible }">
+
+            <!-- 未配置 tag 时的提示 -->
+            <div th:if="${configMissing}" class="mp-config-tip">
+                <p>⚙️ 请先在插件设置中配置专属页面标签</p>
+                <p style="font-size:0.9em;">Halo 后台 → 插件 → 瞬间 → 设置 → 专属页面设置</p>
+            </div>
+
+            <!-- 已配置 tag，正常展示 -->
+            <th:block th:if="${!configMissing}">
+
+                <!-- 页头 -->
+                <div class="mb-8 flex items-center justify-between">
+                    <h2 class="inline-flex items-center gap-2 text-lg text-base-content/90">
+                        <i class="i-ri-camera-lens-line inline-block"></i>
+                        <span th:text="${pageTitle}">瞬间</span>
+                    </h2>
+                </div>
+
+                <!-- 排序控制 -->
+                <div class="mp-controls">
+                    <span>排序：</span>
+                    <a th:href="@{/moments-page(sort='desc')}"
+                       th:classappend="${sortDir == 'desc'} ? 'active' : ''">最新优先</a>
+                    <a th:href="@{/moments-page(sort='asc')}"
+                       th:classappend="${sortDir == 'asc'} ? 'active' : ''">最早优先</a>
+                </div>
+
+                <!-- 瞬间列表 -->
+                <th:block th:with="sortField = 'spec.releaseTime,' + ${sortDir},
+                                   queryParams = ${ {page: page, size: size, tagName: tag, sort: {sortField}} },
+                                   moments = ${momentFinder.list(queryParams)}">
+
+                    <div th:if="${moments != null and not #lists.isEmpty(moments.items)}">
+                        <ul role="list" class="animated fadeIn divide-y divide-base-content/5">
+                            <li class="flex w-full items-start gap-2 py-5"
+                                th:each="moment : ${moments.items}"
+                                th:with="content = ${moment.spec.content}">
+
+                                <!-- 用户头像 -->
+                                <img class="size-12 flex-none rounded-full" width="48" height="48"
+                                     th:src="${moment.owner.avatar}" th:alt="${moment.owner.displayName}" />
+
+                                <div class="min-w-0 flex-1 shrink pl-6">
+                                    <!-- 文字内容 —— 使用 markdown-body moment-content 与主题一致 -->
+                                    <div class="markdown-body moment-content break-all !bg-base-100 !text-sm !text-base-content/60"
+                                         th:if="${content != null and not #strings.isEmpty(content.html)}"
+                                         th:utext="${content.html}">
+                                        这里是瞬间内容...
+                                    </div>
+
+                                    <!-- 媒体内容 -->
+                                    <div class="moment-content mt-2"
+                                         th:if="${content != null and content.medium != null and not #lists.isEmpty(content.medium)}">
+                                        <th:block th:each="item : ${content.medium}">
+                                            <img th:if="${item.type.name == 'PHOTO'}"
+                                                 th:src="${item.url}" loading="lazy"
+                                                 style="max-width:100%;border-radius:8px;margin-top:8px;" />
+                                            <video th:if="${item.type.name == 'VIDEO'}"
+                                                   th:src="${item.url}" controls preload="metadata"
+                                                   style="max-width:100%;margin-top:8px;"></video>
+                                            <audio th:if="${item.type.name == 'AUDIO'}"
+                                                   th:src="${item.url}" controls
+                                                   style="max-width:100%;margin-top:8px;"></audio>
+                                        </th:block>
+                                    </div>
+
+                                    <!-- 元信息行 —— 与主题 moments 完全一致 -->
+                                    <div class="mt-3 flex items-center gap-4">
+                                        <!-- 点赞 -->
+                                        <div class="group inline-flex items-center text-sm text-base-content/50 transition-all">
+                                            <div class="-z-[1] inline-flex size-6 items-center justify-center rounded-full">
+                                                <i class="i-ri-heart-line size-3"></i>
+                                            </div>
+                                            <span>0</span>
+                                        </div>
+                                        <!-- 评论 -->
+                                        <div class="group inline-flex items-center text-sm text-base-content/50 transition-all">
+                                            <div class="-z-[1] inline-flex size-6 items-center justify-center rounded-full">
+                                                <i class="i-ri-message-3-line size-3"></i>
+                                            </div>
+                                            <span>0</span>
+                                        </div>
+                                        <!-- 日期 -->
+                                        <div class="inline-flex items-center text-sm text-base-content/50 transition-all">
+                                            <div class="-z-[1] inline-flex size-6 items-center justify-center">
+                                                <i class="i-ri-calendar-line size-3"></i>
+                                            </div>
+                                            <span th:if="${moment.spec.releaseTime != null}"
+                                                  th:text="${#temporals.format(moment.spec.releaseTime, 'yyyy-MM-dd')}">
+                                                2024-01-01
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 空状态 -->
+                    <div class="mp-empty"
+                         th:if="${moments == null or #lists.isEmpty(moments.items)}">
+                        <p>该标签下暂无瞬间</p>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div class="mp-pagination"
+                         th:if="${moments != null and moments.totalPages > 1}">
+                        <a th:if="${page > 1}"
+                           th:href="@{/moments-page(sort=${sortDir}, page=${page - 1}, size=${size})}">上一页</a>
+                        <span class="disabled" th:if="${page <= 1}">上一页</span>
+                        <span class="current" th:text="${page} + ' / ' + ${moments.totalPages}">1 / 1</span>
+                        <a th:if="${moments.hasNext}"
+                           th:href="@{/moments-page(sort=${sortDir}, page=${page + 1}, size=${size})}">下一页</a>
+                        <span class="disabled" th:if="${!moments.hasNext}">下一页</span>
+                    </div>
+
+                </th:block>
+
+            </th:block>
+        </div>
+    </div>
+
+    <!-- ====== Footer ====== -->
+    <footer class="mt-10 space-y-2 bg-base-100 py-8">
+        <hr class="my-6 border-base-content/5 sm:mx-auto lg:my-8" />
+        <span class="container mx-auto block text-center text-sm text-base-content/70">
+            © 2026
+            <a href="/">北川广海の梦</a>
+            Powered by
+            <a href="https://www.halo.run" class="hover:text-base-content" target="_blank">Halo</a> Theme
+            <a href="https://www.halo.run/store/apps/app-GHgAR" target="_blank" class="hover:text-base-content">Walker</a>
+        </span>
+    </footer>
+
+    <!-- 回到顶部按钮 -->
+    <button type="button" id="btn-scroll-to-top"
+            class="fixed bottom-5 right-5 flex items-center justify-center rounded-full bg-neutral p-3 opacity-0 shadow transition-all duration-300 hover:opacity-70 hover:shadow-lg lg:bottom-10 lg:right-10">
+        <span class="i-tabler-chevron-up text-2xl text-neutral-content"></span>
+    </button>
+
+</body>
+</html>

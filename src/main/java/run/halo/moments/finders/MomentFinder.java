@@ -6,6 +6,7 @@ import run.halo.app.extension.ListResult;
 import run.halo.moments.finders.impl.MomentFinderImpl.MomentQuery;
 import run.halo.moments.vo.MomentTagVo;
 import run.halo.moments.vo.MomentVo;
+import java.util.List;
 import java.util.Map;
 
 
@@ -52,5 +53,26 @@ public interface MomentFinder {
 
     Flux<MomentTagVo> listAllTags();
 
+    /**
+     * List all tags, excluding specified hidden tags.
+     *
+     * @param hiddenTags tags to exclude from the result.
+     * @return a flux of moment tag vo.
+     */
+    Flux<MomentTagVo> listAllTagsExcluding(List<String> hiddenTags);
+
     Mono<ListResult<MomentVo>> listByTag(int pageNum, Integer pageSize, String tagName);
+
+    /**
+     * List moments by tag with pagination, excluding moments that contain any of the hidden tags.
+     * When tagName is null/blank, returns all moments except those with hidden tags.
+     *
+     * @param pageNum   page number.
+     * @param pageSize  page size.
+     * @param tagName   optional tag filter.
+     * @param hiddenTags tags whose moments should be excluded.
+     * @return a mono of list result.
+     */
+    Mono<ListResult<MomentVo>> listByTagExcluding(int pageNum, Integer pageSize,
+                                                    String tagName, List<String> hiddenTags);
 }

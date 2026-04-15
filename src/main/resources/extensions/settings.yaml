@@ -17,3 +17,26 @@ spec:
           name: pageSize
           validation: required|Number
           value: 10
+        - $formkit: tagify
+          label: 隐藏标签
+          name: hiddenTags
+          help: "这些标签的瞬间将不会出现在 /moments 页面和标签列表中（逗号分隔，如：人来人往,日常记录）"
+          value: ""
+    - group: exclusivePage
+      label: 专属页面设置
+      formSchema:
+        - $formkit: text
+          label: 专属页面标签
+          name: exclusivePageTag
+          help: "填写要在 /moments-page 专属页面展示的标签名（如：人来人往）"
+          validation: required
+          value: ""
+        - $formkit: text
+          label: 专属页面标题
+          name: exclusivePageTitle
+          value: "瞬间"
+        - $formkit: text
+          label: 专属页面每页条数
+          name: exclusivePageSize
+          validation: required|Number
+          value: 20
