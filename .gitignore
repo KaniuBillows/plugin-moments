@@ -80,3 +80,4 @@ application-local.properties
 /src/main/resources/console/
 /src/main/resources/templates/*
 !/src/main/resources/templates/moments-page.html
+!/src/main/resources/templates/moment.html

@@ -38,6 +38,20 @@ const queryClient = useQueryClient();
 const editing = ref(props.editing);
 const owner = computed(() => props.listedMoment?.owner);
 
+const handleShare = () => {
+  const momentName = props.listedMoment.moment.metadata.name;
+  const shareUrl = `${window.location.origin}/moments/${momentName}`;
+  navigator.clipboard
+    .writeText(shareUrl)
+    .then(() => {
+      Toast.success("分享链接已复制到剪贴板");
+    })
+    .catch(() => {
+      // Fallback: show prompt with the URL
+      window.prompt("分享链接：", shareUrl);
+    });
+};
+
 const deleteMoment = () => {
   Dialog.warning({
     title: "确定要删除该瞬间吗？",
@@ -141,6 +155,7 @@ const handleApproved = async () => {
                     审核通过
                   </VDropdownItem>
                   <VDropdownItem @click="editing = true"> 编辑 </VDropdownItem>
+                  <VDropdownItem @click="handleShare"> 分享 </VDropdownItem>
                   <VDropdownItem type="danger" @click="deleteMoment"> 删除 </VDropdownItem>
                 </template>
               </VDropdown>

@@ -215,7 +215,7 @@ public class MomentFinderImpl implements MomentFinder {
         }
 
         var listOptions = new ListOptions();
-        var query = all();
+        var query = empty();
         if (StringUtils.isNotBlank(tagName)) {
             query = and(query, equal("spec.tags", tagName));
         }

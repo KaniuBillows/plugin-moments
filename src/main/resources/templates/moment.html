@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title th:text="${pageTitle != null} ? ${pageTitle} + ' - 北川广海の梦' : '瞬间 - 北川广海の梦'">瞬间</title>
+    <title th:text="${title} + ' - 北川广海の梦'">瞬间 - 北川广海の梦</title>
 
     <!-- Walker 主题配色初始化 -->
     <script>
@@ -14,15 +14,11 @@
       };
     </script>
 
-    <style>
-      .main { max-width: 1200px; margin: 0 auto; }
-    </style>
-
     <noscript>
       <style>body { display: block !important; }</style>
     </noscript>
 
-    <!-- Walker 主题核心 JS（负责 Alpine.js app、暗色模式、sidebar 交互等） -->
+    <!-- Walker 主题核心 JS -->
     <script type="module" crossorigin th:src="@{/themes/theme-walker/assets/index-BAtXl84x.js}"></script>
     <link rel="modulepreload" crossorigin th:href="@{/themes/theme-walker/assets/vendor~archives~author~categories~category~index~links~moment~moments~page-links~page~photo~cqdj3oqp-R5jBzZ3P.js}" />
     <link rel="modulepreload" crossorigin th:href="@{/themes/theme-walker/assets/main-z9Ux024Z.js}" />
@@ -48,83 +44,26 @@
     <link rel="icon" href="https://kaniu-img.oss-cn-chengdu.aliyuncs.com/blogPic/cc.ico" />
 
     <style>
-        /* 排序控制 */
-        .mp-controls {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 24px;
-            font-size: 0.85em;
-        }
-        .mp-controls span {
-            color: var(--fallback-bc, oklch(var(--bc) / 0.5));
-        }
-        .mp-controls a {
-            color: var(--fallback-bc, oklch(var(--bc) / 0.5));
-            text-decoration: none;
-            padding: 4px 12px;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        .mp-controls a:hover {
-            background: var(--fallback-b2, oklch(var(--b2)));
-        }
-        .mp-controls a.active {
-            color: var(--fallback-bc, oklch(var(--bc) / 0.9));
-            font-weight: 600;
-            background: var(--fallback-b2, oklch(var(--b2)));
-        }
-
-        /* 分页 */
-        .mp-pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 40px;
-            padding-bottom: 40px;
-        }
-        .mp-pagination a {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.9em;
+        /* 分享页面特有样式 */
+        .moment-single-card {
             background: var(--fallback-b1, oklch(var(--b1)));
-            color: var(--fallback-bc, oklch(var(--bc) / 0.9));
-            border: 1px solid var(--fallback-bc, oklch(var(--bc) / 0.1));
-            transition: all 0.2s;
+            border-radius: 12px;
+            border: 1px solid var(--fallback-bc, oklch(var(--bc) / 0.08));
+            padding: 24px;
+            margin-top: 16px;
         }
-        .mp-pagination a:hover {
-            background: var(--fallback-b2, oklch(var(--b2)));
-        }
-        .mp-pagination .current {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.9em;
-            background: var(--fallback-bc, oklch(var(--bc)));
-            color: var(--fallback-b1, oklch(var(--b1)));
-        }
-        .mp-pagination .disabled {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.9em;
-            color: var(--fallback-bc, oklch(var(--bc) / 0.2));
+        .moment-share-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: var(--fallback-bc, oklch(var(--bc) / 0.05));
+            color: var(--fallback-bc, oklch(var(--bc) / 0.5));
+            font-size: 0.8em;
+            margin-bottom: 16px;
         }
 
-        /* 空状态 & 配置提示 */
-        .mp-empty, .mp-config-tip {
-            text-align: center;
-            padding: 80px 20px;
-            color: var(--fallback-bc, oklch(var(--bc) / 0.4));
-        }
-        .mp-empty p, .mp-config-tip p {
-            font-size: 1.1em;
-            margin-bottom: 8px;
-        }
     </style>
 </head>
 
@@ -148,7 +87,7 @@
     </div>
 
     <!-- ====== 主布局 ====== -->
-    <div class="main flex flex-col px-4 lg:flex-row">
+    <div class="main flex flex-col px-4 lg:flex-row" style="max-width: 1200px; margin: 0 auto;">
 
         <!-- ====== 左侧边栏 ====== -->
         <div id="sidebar" class="sidebar-wrapper lg:static lg:w-1/4">
@@ -265,163 +204,118 @@
         <!-- ====== 右侧内容区 ====== -->
         <div class="content-wrapper pt-32 lg:w-3/4 lg:p-8" :class="{ 'is-second' : menuVisible }">
 
-            <!-- 未配置 tag 时的提示 -->
-            <div th:if="${configMissing}" class="mp-config-tip">
-                <p>⚙️ 请先在插件设置中配置专属页面标签</p>
-                <p style="font-size:0.9em;">Halo 后台 → 插件 → 瞬间 → 设置 → 专属页面设置</p>
+
+
+            <!-- 分享标识 -->
+            <div class="moment-share-badge">
+                <i class="i-ri-share-forward-line inline-block"></i>
+                <span>分享的瞬间</span>
             </div>
 
-            <!-- 已配置 tag，正常展示 -->
-            <th:block th:if="${!configMissing}">
+            <!-- 单条瞬间卡片 -->
+            <th:block th:with="momentVo = ${moment}">
+                <div class="moment-single-card" th:if="${momentVo != null}"
+                     th:with="content = ${momentVo.spec.content}">
 
-                <!-- 页头 -->
-                <div class="mb-8 flex items-center justify-between">
-                    <h2 class="inline-flex items-center gap-2 text-lg text-base-content/90">
-                        <i class="i-ri-camera-lens-line inline-block"></i>
-                        <span th:text="${pageTitle}">瞬间</span>
-                    </h2>
-                </div>
+                    <div class="flex items-start gap-2">
+                        <!-- 用户头像 -->
+                        <img class="size-12 flex-none rounded-full" width="48" height="48"
+                             th:src="${momentVo.owner.avatar}" th:alt="${momentVo.owner.displayName}" />
 
-                <!-- 排序控制 -->
-                <div class="mp-controls">
-                    <span>排序：</span>
-                    <a th:href="@{/moments-page(sort='desc')}"
-                       th:classappend="${sortDir == 'desc'} ? 'active' : ''">最新优先</a>
-                    <a th:href="@{/moments-page(sort='asc')}"
-                       th:classappend="${sortDir == 'asc'} ? 'active' : ''">最早优先</a>
-                </div>
+                        <div class="min-w-0 flex-1 shrink pl-6">
+                            <!-- 用户名 -->
+                            <div class="mb-2 font-semibold text-base-content/90"
+                                 th:text="${momentVo.owner.displayName}">用户名</div>
 
-                <!-- 瞬间列表 -->
-                <th:block th:with="sortField = 'spec.releaseTime,' + ${sortDir},
-                                   queryParams = ${ {page: page, size: size, tagName: tag, sort: {sortField}} },
-                                   moments = ${momentFinder.list(queryParams)}">
+                            <!-- 文字内容 -->
+                            <div class="markdown-body moment-content break-all !bg-base-100 !text-sm !text-base-content/60"
+                                 th:if="${content != null and not #strings.isEmpty(content.html)}"
+                                 th:utext="${content.html}">
+                                这里是瞬间内容...
+                            </div>
 
-                    <div th:if="${moments != null and not #lists.isEmpty(moments.items)}">
-                        <ul role="list" class="animated fadeIn divide-y divide-base-content/5">
-                            <li class="flex w-full items-start gap-2 py-5"
-                                th:each="moment : ${moments.items}"
-                                th:with="content = ${moment.spec.content}">
+                            <!-- 媒体内容 -->
+                            <div class="moment-content mt-2"
+                                 th:if="${content != null and content.medium != null and not #lists.isEmpty(content.medium)}">
+                                <th:block th:each="item : ${content.medium}">
+                                    <img th:if="${item.type.name == 'PHOTO'}"
+                                         th:src="${item.url}" loading="lazy"
+                                         style="max-width:100%;border-radius:8px;margin-top:8px;" />
+                                    <video th:if="${item.type.name == 'VIDEO'}"
+                                           th:src="${item.url}" controls preload="metadata"
+                                           style="max-width:100%;margin-top:8px;"></video>
+                                    <audio th:if="${item.type.name == 'AUDIO'}"
+                                           th:src="${item.url}" controls
+                                           style="max-width:100%;margin-top:8px;"></audio>
+                                </th:block>
+                            </div>
 
-                                <!-- 用户头像 -->
-                                <img class="size-12 flex-none rounded-full" width="48" height="48"
-                                     th:src="${moment.owner.avatar}" th:alt="${moment.owner.displayName}" />
-
-                                <div class="min-w-0 flex-1 shrink pl-6">
-                                    <!-- 文字内容 —— 使用 markdown-body moment-content 与主题一致 -->
-                                    <div class="markdown-body moment-content break-all !bg-base-100 !text-sm !text-base-content/60"
-                                         th:if="${content != null and not #strings.isEmpty(content.html)}"
-                                         th:utext="${content.html}">
-                                        这里是瞬间内容...
-                                    </div>
-
-                                    <!-- 媒体内容 -->
-                                    <div class="moment-content mt-2"
-                                         th:if="${content != null and content.medium != null and not #lists.isEmpty(content.medium)}">
-                                        <th:block th:each="item : ${content.medium}">
-                                            <img th:if="${item.type.name == 'PHOTO'}"
-                                                 th:src="${item.url}" loading="lazy"
-                                                 style="max-width:100%;border-radius:8px;margin-top:8px;" />
-                                            <video th:if="${item.type.name == 'VIDEO'}"
-                                                   th:src="${item.url}" controls preload="metadata"
-                                                   style="max-width:100%;margin-top:8px;"></video>
-                                            <audio th:if="${item.type.name == 'AUDIO'}"
-                                                   th:src="${item.url}" controls
-                                                   style="max-width:100%;margin-top:8px;"></audio>
-                                        </th:block>
-                                    </div>
-
-                                    <!-- 元信息行 + 评论区容器 -->
-                                    <div x-data="{showComment:false}">
-                                    <!-- 元信息行 —— 与原版 moments 一致 -->
-                                    <div class="mt-3 flex items-center gap-4" x-data="{shareModal:false}">
-                                        <!-- 点赞（使用 Walker 主题的 upvote-button Web Component） -->
-                                        <upvote-button
-                                            class="moment-upvote-button"
-                                            th:name="${moment.metadata.name}"
-                                            group="moment.halo.run"
-                                            kind="Moment"
-                                            th:attr="current-upvote-count=${moment.stats?.upvote != null ? moment.stats.upvote : 0}"
-                                        ></upvote-button>
-                                        <!-- 评论 -->
-                                        <div
-                                            class="group inline-flex cursor-pointer items-center text-sm text-base-content/50 transition-all hover:text-base-content"
-                                            :class="{'!text-base-content':showComment}"
-                                            x-on:click="showComment = !showComment"
-                                        >
-                                            <div class="-z-[1] inline-flex size-6 items-center justify-center rounded-full"
-                                                 :class="{'!bg-base-200':showComment}">
-                                                <i class="i-ri-message-3-line size-3"></i>
-                                            </div>
-                                            <span th:text="${moment.stats?.totalComment != null ? moment.stats.totalComment : 0}">0</span>
+                            <!-- 元信息行 + 评论 -->
+                            <div x-data="{showComment:false, commentInited:false}"
+                                 x-effect="if(showComment && !commentInited) { commentInited=true; import('/plugins/PluginCommentWidget/assets/static/comment-widget.js?version=3.1.1').then(m => m.init('#comment-' + $el.dataset.momentName, {group:'moment.halo.run',kind:'Moment',name:$el.dataset.momentName})); }"
+                                 th:data-moment-name="${momentVo.metadata.name}">
+                                <!-- 元信息行 -->
+                                <div class="mt-3 flex items-center gap-4" x-data="{shareModal:false}">
+                                    <!-- 点赞 -->
+                                    <upvote-button
+                                        class="moment-upvote-button"
+                                        th:name="${momentVo.metadata.name}"
+                                        group="moment.halo.run"
+                                        kind="Moment"
+                                        th:attr="current-upvote-count=${momentVo.stats?.upvote != null ? momentVo.stats.upvote : 0}"
+                                    ></upvote-button>
+                                    <!-- 评论 -->
+                                    <div
+                                        class="group inline-flex cursor-pointer items-center text-sm text-base-content/50 transition-all hover:text-base-content"
+                                        :class="{'!text-base-content':showComment}"
+                                        x-on:click="showComment = !showComment"
+                                    >
+                                        <div class="-z-[1] inline-flex size-6 items-center justify-center rounded-full"
+                                             :class="{'!bg-base-200':showComment}">
+                                            <i class="i-ri-message-3-line size-3"></i>
                                         </div>
-                                        <!-- 分享 -->
-                                        <div
-                                            class="group inline-flex cursor-pointer items-center text-sm text-base-content/50 transition-all hover:text-base-content"
-                                            @click="shareModal = true"
-                                        >
-                                            <div class="-z-[1] inline-flex size-6 items-center justify-center rounded-full group-hover:bg-base-200">
-                                                <i class="i-ri-share-line size-3"></i>
-                                            </div>
+                                        <span th:text="${momentVo.stats?.totalComment != null ? momentVo.stats.totalComment : 0}">0</span>
+                                    </div>
+                                    <!-- 分享 -->
+                                    <div
+                                        class="group inline-flex cursor-pointer items-center text-sm text-base-content/50 transition-all hover:text-base-content"
+                                        @click="shareModal = true"
+                                    >
+                                        <div class="-z-[1] inline-flex size-6 items-center justify-center rounded-full group-hover:bg-base-200">
+                                            <i class="i-ri-share-line size-3"></i>
                                         </div>
-                                        <!-- 日期 -->
-                                        <div class="inline-flex items-center text-sm text-base-content/50 transition-all">
-                                            <div class="-z-[1] inline-flex size-6 items-center justify-center">
-                                                <i class="i-ri-calendar-line size-3"></i>
-                                            </div>
-                                            <span th:if="${moment.spec.releaseTime != null}"
-                                                  th:text="${#temporals.format(moment.spec.releaseTime, 'yyyy-MM-dd')}">
-                                                2024-01-01
-                                            </span>
+                                    </div>
+                                    <!-- 日期 -->
+                                    <div class="inline-flex items-center text-sm text-base-content/50 transition-all">
+                                        <div class="-z-[1] inline-flex size-6 items-center justify-center">
+                                            <i class="i-ri-calendar-line size-3"></i>
                                         </div>
+                                        <span th:if="${momentVo.spec.releaseTime != null}"
+                                              th:text="${#temporals.format(momentVo.spec.releaseTime, 'yyyy-MM-dd HH:mm')}">
+                                            2024-01-01
+                                        </span>
+                                    </div>
 
-                                        <url-share-modal
-                                            share-ids="[&quot;wechat&quot;,&quot;x&quot;,&quot;telegram&quot;,&quot;facebook&quot;,&quot;qq&quot;,&quot;qzone&quot;,&quot;weibo&quot;,&quot;douban&quot;,&quot;native&quot;]"
-                                            th:attr="permalink='/moments/' + ${moment.metadata.name}"
-                                            x-bind:open="shareModal"
-                                            @close="shareModal = false"
-                                        ></url-share-modal>
-                                    </div>
-                                    <!-- 评论组件 -->
-                                    <div class="comment-widget mt-2" x-show="showComment">
-                                        <div th:id="${'comment-moment-halo-run-Moment-' + moment.metadata.name}"></div>
-                                        <script th:inline="javascript" type="module" data-pjax>
-                                            import { init } from "/plugins/PluginCommentWidget/assets/static/comment-widget.js?version=3.1.1";
-                                            init(
-                                                "#comment-moment-halo-run-Moment-" + [[${moment.metadata.name}]],
-                                                {
-                                                    group: "moment.halo.run",
-                                                    kind: "Moment",
-                                                    name: [[${moment.metadata.name}]],
-                                                }
-                                            );
-                                        </script>
-                                    </div>
-                                    </div>
+                                    <url-share-modal
+                                        share-ids="[&quot;wechat&quot;,&quot;x&quot;,&quot;telegram&quot;,&quot;facebook&quot;,&quot;qq&quot;,&quot;qzone&quot;,&quot;weibo&quot;,&quot;douban&quot;,&quot;native&quot;]"
+                                        th:attr="permalink='/moments/' + ${momentVo.metadata.name}"
+                                        x-bind:open="shareModal"
+                                        @close="shareModal = false"
+                                    ></url-share-modal>
                                 </div>
-                            </li>
-                        </ul>
+                                <!-- 评论组件 -->
+                                <div class="comment-widget mt-2" x-show="showComment" style="display:none;">
+                                    <div th:id="${'comment-' + momentVo.metadata.name}"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <!-- 空状态 -->
-                    <div class="mp-empty"
-                         th:if="${moments == null or #lists.isEmpty(moments.items)}">
-                        <p>该标签下暂无瞬间</p>
-                    </div>
-
-                    <!-- 分页 -->
-                    <div class="mp-pagination"
-                         th:if="${moments != null and moments.totalPages > 1}">
-                        <a th:if="${page > 1}"
-                           th:href="@{/moments-page(sort=${sortDir}, page=${page - 1}, size=${size})}">上一页</a>
-                        <span class="disabled" th:if="${page <= 1}">上一页</span>
-                        <span class="current" th:text="${page} + ' / ' + ${moments.totalPages}">1 / 1</span>
-                        <a th:if="${moments.hasNext}"
-                           th:href="@{/moments-page(sort=${sortDir}, page=${page + 1}, size=${size})}">下一页</a>
-                        <span class="disabled" th:if="${!moments.hasNext}">下一页</span>
-                    </div>
-
-                </th:block>
-
+                <!-- 瞬间不存在 -->
+                <div th:if="${momentVo == null}" class="text-center py-20 text-base-content/40">
+                    <p class="text-lg mb-2">该瞬间不存在或已被删除</p>
+                </div>
             </th:block>
         </div>
     </div>

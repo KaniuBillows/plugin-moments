@@ -56,6 +56,19 @@ const deleteMoment = () => {
 const onUpdated = () => {
   editing.value = false;
 };
+
+const handleShare = () => {
+  const momentName = props.listedMoment.moment.metadata.name;
+  const shareUrl = `${window.location.origin}/moments/${momentName}`;
+  navigator.clipboard
+    .writeText(shareUrl)
+    .then(() => {
+      Toast.success("分享链接已复制到剪贴板");
+    })
+    .catch(() => {
+      window.prompt("分享链接：", shareUrl);
+    });
+};
 </script>
 <template>
   <div>
@@ -123,6 +136,7 @@ const onUpdated = () => {
                     <HasPermission :permissions="['uc:plugin:moments:publish']">
                       <VDropdownItem @click="editing = true"> 编辑 </VDropdownItem>
                     </HasPermission>
+                    <VDropdownItem @click="handleShare"> 分享 </VDropdownItem>
                     <HasPermission :permissions="['uc:plugin:moments:delete']">
                       <VDropdownItem type="danger" @click="deleteMoment"> 删除 </VDropdownItem>
                     </HasPermission>
