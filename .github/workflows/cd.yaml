@@ -1,19 +1,55 @@
 name: CD
 
+# 推送 v* 标签时自动构建并发布 GitHub Release（含 JAR）
+# 用法：
+#   git tag v1.16.1-kb.1
+#   git push origin v1.16.1-kb.1
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
-  cd:
-    uses: halo-sigs/reusable-workflows/.github/workflows/plugin-cd.yaml@v4
-    secrets:
-      halo-pat: ${{ secrets.HALO_PAT }}
-    permissions:
-      contents: write
-    with:
-      node-version: "24"
-      pnpm-version: "10"
-      app-id: app-SnwWD
-      ui-path: "console"
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Environment
+        uses: halo-sigs/reusable-workflows/plugin-setup-env@v4
+        with:
+          cache-dept-path: console/pnpm-lock.yaml
+          node-version: "24"
+          pnpm-version: "10"
+          java-version: "21"
+
+      - name: Resolve version
+        id: version
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: ./gradlew clean build -x check -Pversion=${{ steps.version.outputs.version }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          shopt -s nullglob
+          assets=(build/libs/*.jar)
+          if [ ${#assets[@]} -eq 0 ]; then
+            echo "No JAR found under build/libs" >&2
+            ls -la build/libs || true
+            exit 1
+          fi
+          gh release create "${{ steps.version.outputs.tag }}" \
+            "${assets[@]}" \
+            --title "${{ steps.version.outputs.version }}" \
+            --generate-notes \
+            --verify-tag
